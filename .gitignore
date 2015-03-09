@@ -30,3 +30,5 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 build
 /results/
+
+*.wav

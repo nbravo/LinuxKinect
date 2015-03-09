@@ -33,16 +33,16 @@
 #include "loader.h"
 
 #ifdef _MSC_VER
-	# define sleep(x) Sleep((x)*1000) 
-#endif 
+	# define sleep(x) Sleep((x)*1000)
+#endif
 
 
 FN_INTERNAL int fnusb_num_devices(fnusb_ctx *ctx)
 {
-	libusb_device **devs; 
-	//pointer to pointer of device, used to retrieve a list of devices	
-	ssize_t cnt = libusb_get_device_list (ctx->ctx, &devs); 
-	//get the list of devices	
+	libusb_device **devs;
+	//pointer to pointer of device, used to retrieve a list of devices
+	ssize_t cnt = libusb_get_device_list (ctx->ctx, &devs);
+	//get the list of devices
 	if (cnt < 0)
 		return (-1);
 	int nr = 0, i = 0;
@@ -258,7 +258,7 @@ FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
 
 	dev->device_does_motor_control_with_audio = 0;
 	dev->motor_control_with_audio_enabled = 0;
-    
+
 	dev->usb_cam.parent = dev;
 	dev->usb_cam.dev = NULL;
 	dev->usb_motor.parent = dev;
@@ -304,10 +304,10 @@ FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
 				if (desc.idProduct == PID_K4W_CAMERA || desc.bcdDevice != fn_le32(267))
 				{
 					freenect_device_flags requested_devices = ctx->enabled_subdevices;
-        
+
 					// Not the 1414 kinect so remove the motor flag, this should preserve the audio flag if set
 					ctx->enabled_subdevices = (freenect_device_flags)(ctx->enabled_subdevices & ~FREENECT_DEVICE_MOTOR);
-					
+
 					ctx->zero_plane_res = 334;
                     dev->device_does_motor_control_with_audio = 1;
 
@@ -401,10 +401,10 @@ FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
 			}
 		}
 	}
-	
+
 	if (ctx->enabled_subdevices == FREENECT_DEVICE_CAMERA || res < 0)
 		cnt = 0;
-	
+
 	// Search for the motor
 	for (i = 0; i < cnt; i++)
 	{
@@ -476,8 +476,9 @@ FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
 				// waiting for a device with the same serial number to
 				// reappear.
 				int num_interfaces = fnusb_num_interfaces(&dev->usb_audio);
-                
-				if (num_interfaces >= 2)
+        printf("Number of interfaces: %d\n", num_interfaces);
+
+				if (num_interfaces >= 1)
 				{
 					if (dev->device_does_motor_control_with_audio)
 					{
@@ -495,9 +496,9 @@ FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
 						break;
 					}
 					char* audio_serial = strdup((char*)string_desc);
-                
+
 					FN_SPEW("Uploading firmware to audio device in bootloader state.\n");
-                    
+
 					// Check if we can load from memory - otherwise load from disk
 					if (desc.idProduct == PID_NUI_AUDIO && ctx->fn_fw_nui_ptr && ctx->fn_fw_nui_size > 0)
 					{
