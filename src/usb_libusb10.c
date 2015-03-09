@@ -478,7 +478,7 @@ FN_INTERNAL int fnusb_open_subdevices(freenect_device *dev, int index)
 				int num_interfaces = fnusb_num_interfaces(&dev->usb_audio);
         printf("Number of interfaces: %d\n", num_interfaces);
 
-				if (num_interfaces >= 1)
+				if (num_interfaces >= 2)
 				{
 					if (dev->device_does_motor_control_with_audio)
 					{

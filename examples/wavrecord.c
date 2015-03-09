@@ -32,10 +32,10 @@ void in_callback(freenect_device* dev, int num_samples,
                  int32_t* mic3, int32_t* mic4,
                  int16_t* cancelled, void *unknown) {
 	capture* c = (capture*)freenect_get_user(dev);
-	fwrite(mic1, 1, num_samples * sizeof(int32_t), c->logfiles[0]);
-	fwrite(mic2, 1, num_samples * sizeof(int32_t), c->logfiles[1]);
-	fwrite(mic3, 1, num_samples * sizeof(int32_t), c->logfiles[2]);
-	fwrite(mic4, 1, num_samples * sizeof(int32_t), c->logfiles[3]);
+	fwrite(mic1, 1, num_samples*sizeof(int32_t), c->logfiles[0]);
+	fwrite(mic2, 1, num_samples*sizeof(int32_t), c->logfiles[1]);
+	fwrite(mic3, 1, num_samples*sizeof(int32_t), c->logfiles[2]);
+	fwrite(mic4, 1, num_samples*sizeof(int32_t), c->logfiles[3]);
 	c->samples += num_samples;
 	printf("Sample received by Kinect 1.  Total samples recorded: %d\n", c->samples);
 }
@@ -45,10 +45,10 @@ void in_callback2(freenect_device* dev, int num_samples,
                  int32_t* mic3, int32_t* mic4,
                  int16_t* cancelled, void *unknown) {
 	capture* c2 = (capture*)freenect_get_user(dev);
-	fwrite(mic1, 1, num_samples * sizeof(int32_t), c2->logfiles[0]);
-	fwrite(mic2, 1, num_samples * sizeof(int32_t), c2->logfiles[1]);
-	fwrite(mic3, 1, num_samples * sizeof(int32_t), c2->logfiles[2]);
-	fwrite(mic4, 1, num_samples * sizeof(int32_t), c2->logfiles[3]);
+	fwrite(mic1, 1, num_samples*sizeof(int32_t), c2->logfiles[0]);
+	fwrite(mic2, 1, num_samples*sizeof(int32_t), c2->logfiles[1]);
+	fwrite(mic3, 1, num_samples*sizeof(int32_t), c2->logfiles[2]);
+	fwrite(mic4, 1, num_samples*sizeof(int32_t), c2->logfiles[3]);
 	c2->samples += num_samples;
 	printf("Sample received by Kinect 2.  Total samples recorded: %d\n", c2->samples);
 }
@@ -90,7 +90,6 @@ int main(int argc, char** argv) {
 		freenect_shutdown(f_ctx);
 		return 1;
 	}
-	printf ("opened device 2\n");
 
 	capture state;
 	capture state2;
@@ -114,7 +113,6 @@ int main(int argc, char** argv) {
 	fwrite(wavheader, 1, 44, state2.logfiles[3]);
 	freenect_set_user(f_dev, &state);
 	freenect_set_user(f_dev2, &state2);
-
 	freenect_set_audio_in_callback(f_dev, in_callback);
 	freenect_set_audio_in_callback(f_dev2, in_callback2);
 	freenect_start_audio(f_dev);
@@ -133,7 +131,6 @@ int main(int argc, char** argv) {
 	for(i = 0; i < 4 ; i++) {
 		char buf[4];
 		fseek(state.logfiles[i], 4, SEEK_SET);
-
 		// Write ChunkSize = 36 + subchunk2size
 		int chunksize = state.samples * 4 + 36;
 		buf[0] = (chunksize & 0x000000ff);
@@ -143,7 +140,6 @@ int main(int argc, char** argv) {
 		fwrite(buf, 1, 4, state.logfiles[i]);
 
 		fseek(state.logfiles[i], 40, SEEK_SET);
-
 		// Write Subchunk2Size = NumSamples * NumChannels (1) * BitsPerSample/8 (4)
 		int subchunk2size = state.samples * 4;
 		buf[0] = (subchunk2size & 0x000000ff);
@@ -153,7 +149,6 @@ int main(int argc, char** argv) {
 		fwrite(buf, 1, 4, state.logfiles[i]);
 		fclose(state.logfiles[i]);
 	}
-
 	for(i = 0; i < 4 ; i++) {
 		char buf2[4];
 		fseek(state2.logfiles[i], 4, SEEK_SET);
