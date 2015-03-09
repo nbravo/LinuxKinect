@@ -32,6 +32,8 @@ int paused = 0;
 
 pthread_mutex_t audiobuf_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t audiobuf_cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t audiobuf_mutex2 = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t audiobuf_cond2 = PTHREAD_COND_INITIALIZER;
 
 int win_h, win_w;
 
@@ -68,7 +70,7 @@ void in_callback2(freenect_device* dev, int num_samples,
                  int32_t* mic1, int32_t* mic2,
                  int32_t* mic3, int32_t* mic4,
                  int16_t* cancelled, void *unknown) {
-	pthread_mutex_lock(&audiobuf_mutex);
+	pthread_mutex_lock(&audiobuf_mutex2);
 	capture* c2 = (capture*)freenect_get_user(dev);
 	if(num_samples < c2->max_samples - c2->current_idx) {
 		memcpy(&(c2->buffers[0][c2->current_idx]), mic1, num_samples*sizeof(int32_t));
@@ -89,8 +91,8 @@ void in_callback2(freenect_device* dev, int num_samples,
 	}
 	c2->current_idx = (c2->current_idx + num_samples) % c2->max_samples;
 	c2->new_data = 1;
-	pthread_cond_signal(&audiobuf_cond);
-	pthread_mutex_unlock(&audiobuf_mutex);
+	pthread_cond_signal(&audiobuf_cond2);
+	pthread_mutex_unlock(&audiobuf_mutex2);
 }
 
 void* freenect_threadfunc(void* arg) {
@@ -109,8 +111,9 @@ void DrawMicData() {
 	if (paused)
 		return;
 	pthread_mutex_lock(&audiobuf_mutex);
-	while(!state.new_data)
+	while(!(state.new_data)) {
 		pthread_cond_wait(&audiobuf_cond, &audiobuf_mutex);
+  }
 	state.new_data = 0;
 	// Draw:
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -118,9 +121,11 @@ void DrawMicData() {
 	glLoadIdentity();
 
 	float xIncr = (float)win_w / state.max_samples;
+	float xIncr2 = (float)win_w / state2.max_samples;
 	float x = 0.;
 	int i;
 	int base_idx = state.current_idx;
+	int base_idx2 = state2.current_idx;
 
 	// Technically, we should hold the lock until we're done actually drawing
 	// the lines, but this is sufficient to ensure that the drawings align
@@ -134,8 +139,17 @@ void DrawMicData() {
 		glBegin(GL_LINE_STRIP);
 		glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
 		for(x = 0, i = 0; i < state.max_samples; i++) {
-			glVertex3f(x, ((float)win_h * (float)(2*mic + 1) / 8. ) + (float)(state.buffers[mic][(base_idx + i) % state.max_samples]) * ((float)win_h/4) /2147483647. , 0);
+			glVertex3f(x, ((float)win_h * (float)(2*mic + 1) / 16. ) + (float)(state.buffers[mic][(base_idx + i) % state.max_samples]) * ((float)win_h/4) /2147483647. , 0);
 			x += xIncr;
+		}
+		glEnd();
+	}
+	for(mic = 0; mic < 4; mic++) {
+		glBegin(GL_LINE_STRIP);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
+		for(x = 0, i = 0; i < state2.max_samples; i++) {
+			glVertex3f(x, ((float)win_h * (float)(2*mic + 9) / 16. ) + (float)(state2.buffers[mic][(base_idx2 + i) % state2.max_samples]) * ((float)win_h/4) /2147483647. , 0);
+			x += xIncr2;
 		}
 		glEnd();
 	}
